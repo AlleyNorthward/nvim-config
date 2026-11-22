@@ -1,0 +1,6 @@
+require("basic").new()
+require("keymap.init")
+require("command.init")
+require("plugins.init")
+local colortheme = require("colortheme")
+colortheme:set_theme("vscode")
