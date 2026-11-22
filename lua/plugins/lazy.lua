@@ -8,6 +8,7 @@ local treesitter = require("plugins.treesitter").new()
 local autopairs= require("plugins.autopairs").new()
 local smear = require("plugins.smear-cursor").new()
 local vscode = require("plugins.vscode").new()
+local fzf = require("plugins.fzf").new()
 local lsp = require("plugins.lsp.init")
 local mason = lsp.mason.new()
 local nvimlspconfig = lsp.nvimconfig.new()
@@ -38,6 +39,16 @@ require("lazy").setup({
       vscode:config()
     end
   },
+
+  --fzf
+    {
+      fzf.name,
+      dependencies = fzf.dependencies,
+      keys = fzf.keys,
+      config = function()
+        fzf:config()
+      end,
+    },
 
   -- tree
   {

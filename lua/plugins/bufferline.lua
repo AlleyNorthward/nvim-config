@@ -13,10 +13,14 @@ function BufferLine.new()
   self.keys = {
     { "<C-h>", "<cmd>BufferLineCyclePrev<CR>", desc = "Previous Buffer" },
     { "<C-l>", "<cmd>BufferLineCycleNext<CR>", desc = "Next Buffer" },
-    { "<C-w>", "<cmd>Bdelete!<CR>", desc = "Close Buffer" },
-    { "<leader>w", function ()
-      self:auto_delete_bufferLine()
-    end, desc = "Smart Close Buffer" },
+    { "<C-w>", "<cmd>Bdelete!<CR>",            desc = "Close Buffer" },
+    {
+      "<leader>w",
+      function()
+        self:auto_delete_bufferLine()
+      end,
+      desc = "Smart Close Buffer"
+    },
   }
 
   return self
@@ -43,7 +47,7 @@ function BufferLine:config()
         local s = " "
         for e, n in pairs(diagnostics_dict) do
           local sym = e == "error" and " "
-            or (e == "warning" and " " or "")
+              or (e == "warning" and " " or "")
           s = s .. n .. sym
         end
         return s
@@ -61,7 +65,7 @@ function BufferLine:auto_delete_bufferLine()
       vim.cmd("BufferLinePickClose")
       first = false
     else
-      local key = vim.fn.getchar()       -- 获取输入
+      local key = vim.fn.getchar() -- 获取输入
       if key == 27 then
         vim.notify("Exit Success", vim.log.levels.INFO)
         break
