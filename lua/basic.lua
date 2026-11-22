@@ -128,6 +128,8 @@ function Basic:init()
 
   g.loaded_python3_provider = 0
   g.python_recommended_style = 0
+
+  vim.o.shell = "pwsh.exe"
 end
 
 return Basic

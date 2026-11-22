@@ -60,8 +60,9 @@ function GeneralMap:windowMap()
 end
 
 function GeneralMap:terminalMap()
-  self.map("n", "<leader>t", "<cmd>split | terminal<cr>", self.opts)
-  self.map("n", "<leader>vt", "<Cmd>vsplit | terminal<CR>", self.opts)
+  self.map("n", "<leader>t", function()
+    self:splitTerminal()
+  end, self.opts)
   self.map("t", "<Esc>", "<C-\\><C-n>", self.opts)
 end
 
@@ -115,6 +116,92 @@ function GeneralMap:newLine(n)
   end
 
   vim.api.nvim_buf_set_lines(0, line_count, line_count, false, empty_lines)
+end
+
+
+function GeneralMap:splitTerminal()
+  if self.term_win and vim.api.nvim_win_is_valid(self.term_win) then
+    self.term_action = "hide"
+    vim.api.nvim_win_hide(self.term_win)
+    self.term_action = nil
+    return
+  end
+
+  local buf = self.term_buf
+  local is_new = not buf or not vim.api.nvim_buf_is_valid(buf)
+
+  if is_new then
+    buf = vim.api.nvim_create_buf(false, true)
+    self.term_buf = buf
+
+    vim.api.nvim_set_option_value("bufhidden", "hide", { buf = buf })
+    vim.api.nvim_set_option_value("buflisted", false, { buf = buf })
+  end
+
+  local width = math.max(1, math.floor(vim.o.columns / 3))
+  local height = math.max(1, math.floor(vim.o.lines / 3))
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = width,
+    height = height,
+    col = vim.o.columns - width,
+    row = 0,
+    style = "minimal",
+    border = "rounded",
+  })
+
+  self.term_win = win
+
+  vim.api.nvim_set_hl(0, "UbuntuTerminal", {
+    bg = "#300A24",
+  })
+
+  vim.wo[win].winhighlight =
+    "Normal:UbuntuTerminal,NormalNC:UbuntuTerminal"
+
+  if is_new then
+    local job = vim.fn.jobstart({
+      "pwsh.exe",
+      "-NoLogo",
+    }, {
+      term = true,
+      env = {
+        NVIM_FLOAT_TERM = "1",
+      },
+    })
+
+    if job <= 0 then
+      vim.api.nvim_win_close(win, true)
+      self.term_win = nil
+      self.term_buf = nil
+      return
+    end
+
+    self.term_job = job
+  end
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(win),
+    once = true,
+    callback = function()
+      self.term_win = nil
+
+      if self.term_action == "hide" then
+        return
+      end
+
+      local old_buf = self.term_buf
+      self.term_buf = nil
+      self.term_job = nil
+
+      vim.schedule(function()
+        if old_buf and vim.api.nvim_buf_is_valid(old_buf) then
+          vim.api.nvim_buf_delete(old_buf, { force = true })
+        end
+      end)
+    end,
+  })
 end
 
 function GeneralMap:initMap()
