@@ -67,9 +67,9 @@ function BlinkCmp:config()
     sources = {
       default = {
         "lsp",
-        "snippets",
         "path",
         "buffer",
+        "snippets"
       },
     },
 

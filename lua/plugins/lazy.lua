@@ -9,7 +9,9 @@ local autopairs= require("plugins.autopairs").new()
 local smear = require("plugins.smear-cursor").new()
 local vscode = require("plugins.vscode").new()
 local fzf = require("plugins.fzf").new()
+local rendermarkdown = require("plugins.markdown").new()
 local lsp = require("plugins.lsp.init")
+local rainbow = require("plugins.rainbow").new()
 local mason = lsp.mason.new()
 local nvimlspconfig = lsp.nvimconfig.new()
 local masonlspconfig = lsp.masonconfig.new()
@@ -106,7 +108,7 @@ require("lazy").setup({
     end
   },
 
-    -- smear cursor
+  -- smear cursor
   {
     smear.name,
     config = function()
@@ -114,6 +116,25 @@ require("lazy").setup({
     end,
   },
 
+
+  -- rainbow
+  {
+    rainbow.name,
+    dependencies = rainbow.dependencies,
+    event = rainbow.event,
+    config = function()
+      rainbow:config()
+    end,
+  },
+  -- render-markdown
+  {
+    rendermarkdown.name,
+    dependencies = rendermarkdown.dependencies,
+    ft = rendermarkdown.ft,
+    config = function()
+      rendermarkdown:config()
+    end,
+  },
   -- lsp
   -- blink-cmp
   {

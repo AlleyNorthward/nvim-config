@@ -118,12 +118,18 @@ function GeneralMap:newLine(n)
   vim.api.nvim_buf_set_lines(0, line_count, line_count, false, empty_lines)
 end
 
-
 function GeneralMap:splitTerminal()
-  if self.term_win and vim.api.nvim_win_is_valid(self.term_win) then
-    self.term_action = "hide"
-    vim.api.nvim_win_hide(self.term_win)
-    self.term_action = nil
+  local win = self.term_win
+
+  if win and vim.api.nvim_win_is_valid(win) then
+    if vim.api.nvim_get_current_win() == win then
+      self.term_action = "hide"
+      vim.api.nvim_win_hide(win)
+      self.term_action = nil
+    else
+      vim.api.nvim_set_current_win(win)
+      vim.cmd("startinsert!")
+    end
     return
   end
 
@@ -141,7 +147,7 @@ function GeneralMap:splitTerminal()
   local width = math.max(1, math.floor(vim.o.columns / 3))
   local height = math.max(1, math.floor(vim.o.lines / 3))
 
-  local win = vim.api.nvim_open_win(buf, true, {
+  local new_win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
     height = height,
@@ -151,14 +157,14 @@ function GeneralMap:splitTerminal()
     border = "rounded",
   })
 
-  self.term_win = win
+  self.term_win = new_win
 
   vim.api.nvim_set_hl(0, "UbuntuTerminal", {
     bg = "#300A24",
   })
 
-  vim.wo[win].winhighlight =
-    "Normal:UbuntuTerminal,NormalNC:UbuntuTerminal"
+  vim.wo[new_win].winhighlight =
+  "Normal:UbuntuTerminal,NormalNC:UbuntuTerminal"
 
   if is_new then
     local job = vim.fn.jobstart({
@@ -172,7 +178,7 @@ function GeneralMap:splitTerminal()
     })
 
     if job <= 0 then
-      vim.api.nvim_win_close(win, true)
+      vim.api.nvim_win_close(new_win, true)
       self.term_win = nil
       self.term_buf = nil
       return
@@ -182,7 +188,7 @@ function GeneralMap:splitTerminal()
   end
 
   vim.api.nvim_create_autocmd("WinClosed", {
-    pattern = tostring(win),
+    pattern = tostring(new_win),
     once = true,
     callback = function()
       self.term_win = nil
@@ -202,6 +208,7 @@ function GeneralMap:splitTerminal()
       end)
     end,
   })
+  vim.cmd("startinsert!")
 end
 
 function GeneralMap:initMap()
